@@ -266,6 +266,7 @@ static struct BurnInputInfo HiimpactInputList[] = {
 	{"P1 Button 1",				BIT_DIGITAL,	DrvJoy1 + 4,	"p1 fire 1"	},
 
 	{"P2 Coin",					BIT_DIGITAL,	DrvJoy2 + 1,	"p2 coin"	},
+	{"P2 Start",				BIT_DIGITAL,	DrvJoy2 + 5,	"p2 start"	},
 	{"P2 Up",					BIT_DIGITAL,	DrvJoy1 + 8,	"p2 up"		},
 	{"P2 Down",					BIT_DIGITAL,	DrvJoy1 + 9,	"p2 down"	},
 	{"P2 Left",					BIT_DIGITAL,	DrvJoy1 + 10,	"p2 left"	},
@@ -273,6 +274,7 @@ static struct BurnInputInfo HiimpactInputList[] = {
 	{"P2 Button 1",				BIT_DIGITAL,	DrvJoy1 + 12,	"p2 fire 1"	},
 
 	{"P3 Coin",					BIT_DIGITAL,	DrvJoy2 + 7,	"p3 coin"	},
+	{"P3 Start",				BIT_DIGITAL,	DrvJoy2 + 9,	"p3 start"	},
 	{"P3 Up",					BIT_DIGITAL,	DrvJoy2 + 11,	"p3 up"		},
 	{"P3 Down",					BIT_DIGITAL,	DrvJoy2 + 12,	"p3 down"	},
 	{"P3 Left",					BIT_DIGITAL,	DrvJoy2 + 13,	"p3 left"	},
@@ -280,6 +282,7 @@ static struct BurnInputInfo HiimpactInputList[] = {
 	{"P3 Button 1",				BIT_DIGITAL,	DrvJoy2 + 15,	"p3 fire 1"	},
 
 	{"P4 Coin",					BIT_DIGITAL,	DrvJoy3 + 5,	"p4 coin"	},
+	{"P4 Start",				BIT_DIGITAL,	DrvJoy2 + 10,	"p4 start"	},
 	{"P4 Up",					BIT_DIGITAL,	DrvJoy3 + 0,	"p4 up"		},
 	{"P4 Down",					BIT_DIGITAL,	DrvJoy3 + 1,	"p4 down"	},
 	{"P4 Left",					BIT_DIGITAL,	DrvJoy3 + 2,	"p4 left"	},
@@ -515,7 +518,7 @@ STDDIPINFO(Trog)
 
 static struct BurnDIPInfo HiimpactDIPList[]=
 {
-	DIP_OFFSET(0x1d)
+	DIP_OFFSET(0x20)
 	{0x00, 0xff, 0xff, 0xf8, NULL					},
 	{0x01, 0xff, 0xff, 0xf1, NULL					},
 
@@ -564,7 +567,7 @@ STDDIPINFO(Hiimpact)
 
 static struct BurnDIPInfo ShimpactDIPList[]=
 {
-	DIP_OFFSET(0x1d)
+	DIP_OFFSET(0x20)
 	{0x00, 0xff, 0xff, 0xf8, NULL					},
 	{0x01, 0xff, 0xff, 0xf1, NULL					},
 
@@ -3245,7 +3248,7 @@ struct BurnDriver BurnDrvTrog = {
 	BDF_GAME_WORKING, 4, HARDWARE_PREFIX_MIDWAY, GBF_MAZE, 0,
 	NULL, trogRomInfo, trogRomName, NULL, NULL, NULL, NULL, TrogInputInfo, TrogDIPInfo,
 	TrogInit, DrvExit, DrvFrame, DrvDraw, DrvScan, &BurnRecalc, 256,
-	400, 256, 4, 3
+	396, 256, 4, 3
 };
 
 
@@ -3281,7 +3284,7 @@ struct BurnDriver BurnDrvTrog4 = {
 	BDF_GAME_WORKING | BDF_CLONE, 4, HARDWARE_PREFIX_MIDWAY, GBF_MAZE, 0,
 	NULL, trog4RomInfo, trog4RomName, NULL, NULL, NULL, NULL, TrogInputInfo, TrogDIPInfo,
 	TrogInit, DrvExit, DrvFrame, DrvDraw, DrvScan, &BurnRecalc, 256,
-	400, 256, 4, 3
+	396, 256, 4, 3
 };
 
 
@@ -3317,7 +3320,7 @@ struct BurnDriver BurnDrvTrog3 = {
 	BDF_GAME_WORKING | BDF_CLONE, 4, HARDWARE_PREFIX_MIDWAY, GBF_MAZE, 0,
 	NULL, trog3RomInfo, trog3RomName, NULL, NULL, NULL, NULL, TrogInputInfo, TrogDIPInfo,
 	TrogInit, DrvExit, DrvFrame, DrvDraw, DrvScan, &BurnRecalc, 256,
-	400, 256, 4, 3
+	396, 256, 4, 3
 };
 
 
@@ -3353,7 +3356,7 @@ struct BurnDriver BurnDrvTrogpa6 = {
 	BDF_GAME_WORKING | BDF_CLONE | BDF_PROTOTYPE, 4, HARDWARE_PREFIX_MIDWAY, GBF_MAZE, 0,
 	NULL, trogpa6RomInfo, trogpa6RomName, NULL, NULL, NULL, NULL, TrogInputInfo, TrogDIPInfo,
 	TrogInit, DrvExit, DrvFrame, DrvDraw, DrvScan, &BurnRecalc, 256,
-	400, 256, 4, 3
+	396, 256, 4, 3
 };
 
 
@@ -3389,7 +3392,7 @@ struct BurnDriver BurnDrvTrogpa4 = {
 	BDF_GAME_WORKING | BDF_CLONE | BDF_PROTOTYPE, 4, HARDWARE_PREFIX_MIDWAY, GBF_MAZE, 0,
 	NULL, trogpa4RomInfo, trogpa4RomName, NULL, NULL, NULL, NULL, TrogInputInfo, TrogDIPInfo,
 	TrogInit, DrvExit, DrvFrame, DrvDraw, DrvScan, &BurnRecalc, 256,
-	400, 256, 4, 3
+	396, 256, 4, 3
 };
 
 
@@ -3627,7 +3630,7 @@ struct BurnDriver BurnDrvHiimpact = {
 	BDF_GAME_WORKING, 4, HARDWARE_PREFIX_MIDWAY, GBF_SPORTSFOOTBALL, 0,
 	NULL, hiimpactRomInfo, hiimpactRomName, NULL, NULL, NULL, NULL, HiimpactInputInfo, HiimpactDIPInfo,
 	HiimpactInit, DrvExit, DrvFrame, DrvDraw, DrvScan, &BurnRecalc, 256,
-	400, 256, 4, 3
+	396, 256, 4, 3
 };
 
 
@@ -3671,7 +3674,7 @@ struct BurnDriver BurnDrvHiimpact4 = {
 	BDF_GAME_WORKING | BDF_CLONE, 4, HARDWARE_PREFIX_MIDWAY, GBF_SPORTSFOOTBALL, 0,
 	NULL, hiimpact4RomInfo, hiimpact4RomName, NULL, NULL, NULL, NULL, HiimpactInputInfo, HiimpactDIPInfo,
 	HiimpactInit, DrvExit, DrvFrame, DrvDraw, DrvScan, &BurnRecalc, 256,
-	400, 256, 4, 3
+	396, 256, 4, 3
 };
 
 
@@ -3715,7 +3718,7 @@ struct BurnDriver BurnDrvHiimpact3 = {
 	BDF_GAME_WORKING | BDF_CLONE, 4, HARDWARE_PREFIX_MIDWAY, GBF_SPORTSFOOTBALL, 0,
 	NULL, hiimpact3RomInfo, hiimpact3RomName, NULL, NULL, NULL, NULL, HiimpactInputInfo, HiimpactDIPInfo,
 	HiimpactInit, DrvExit, DrvFrame, DrvDraw, DrvScan, &BurnRecalc, 256,
-	400, 256, 4, 3
+	396, 256, 4, 3
 };
 
 
@@ -3759,7 +3762,7 @@ struct BurnDriver BurnDrvHiimpact2 = {
 	BDF_GAME_WORKING | BDF_CLONE, 4, HARDWARE_PREFIX_MIDWAY, GBF_SPORTSFOOTBALL, 0,
 	NULL, hiimpact2RomInfo, hiimpact2RomName, NULL, NULL, NULL, NULL, HiimpactInputInfo, HiimpactDIPInfo,
 	HiimpactInit, DrvExit, DrvFrame, DrvDraw, DrvScan, &BurnRecalc, 256,
-	400, 256, 4, 3
+	396, 256, 4, 3
 };
 
 
@@ -3803,7 +3806,7 @@ struct BurnDriver BurnDrvHiimpact1 = {
 	BDF_GAME_WORKING | BDF_CLONE, 4, HARDWARE_PREFIX_MIDWAY, GBF_SPORTSFOOTBALL, 0,
 	NULL, hiimpact1RomInfo, hiimpact1RomName, NULL, NULL, NULL, NULL, HiimpactInputInfo, HiimpactDIPInfo,
 	HiimpactInit, DrvExit, DrvFrame, DrvDraw, DrvScan, &BurnRecalc, 256,
-	400, 256, 4, 3
+	396, 256, 4, 3
 };
 
 
@@ -3847,7 +3850,7 @@ struct BurnDriver BurnDrvHiimpactp = {
 	BDF_GAME_WORKING | BDF_CLONE | BDF_PROTOTYPE, 4, HARDWARE_PREFIX_MIDWAY, GBF_SPORTSFOOTBALL, 0,
 	NULL, hiimpactpRomInfo, hiimpactpRomName, NULL, NULL, NULL, NULL, HiimpactInputInfo, HiimpactDIPInfo,
 	HiimpactInit, DrvExit, DrvFrame, DrvDraw, DrvScan, &BurnRecalc, 256,
-	400, 256, 4, 3
+	396, 256, 4, 3
 };
 
 
@@ -3897,7 +3900,7 @@ struct BurnDriver BurnDrvShimpact = {
 	BDF_GAME_WORKING, 4, HARDWARE_PREFIX_MIDWAY, GBF_SPORTSFOOTBALL, 0,
 	NULL, shimpactRomInfo, shimpactRomName, NULL, NULL, NULL, NULL, HiimpactInputInfo, ShimpactDIPInfo,
 	ShimpactInit, DrvExit, DrvFrame, DrvDraw, DrvScan, &BurnRecalc, 256,
-	400, 256, 4, 3
+	396, 256, 4, 3
 };
 
 
@@ -3935,7 +3938,7 @@ struct BurnDriver BurnDrvShimpactp6 = {
 	BDF_GAME_WORKING | BDF_CLONE | BDF_PROTOTYPE, 4, HARDWARE_PREFIX_MIDWAY, GBF_SPORTSFOOTBALL, 0,
 	NULL, shimpactp6RomInfo, shimpactp6RomName, NULL, NULL, NULL, NULL, HiimpactInputInfo, ShimpactDIPInfo,
 	ShimpactInit, DrvExit, DrvFrame, DrvDraw, DrvScan, &BurnRecalc, 256,
-	400, 256, 4, 3
+	396, 256, 4, 3
 };
 
 
@@ -3973,7 +3976,7 @@ struct BurnDriver BurnDrvShimpactp5 = {
 	BDF_GAME_WORKING | BDF_CLONE | BDF_PROTOTYPE, 4, HARDWARE_PREFIX_MIDWAY, GBF_SPORTSFOOTBALL, 0,
 	NULL, shimpactp5RomInfo, shimpactp5RomName, NULL, NULL, NULL, NULL, HiimpactInputInfo, ShimpactDIPInfo,
 	ShimpactInit, DrvExit, DrvFrame, DrvDraw, DrvScan, &BurnRecalc, 256,
-	400, 256, 4, 3
+	396, 256, 4, 3
 };
 
 
@@ -4011,7 +4014,7 @@ struct BurnDriver BurnDrvShimpactp4 = {
 	BDF_GAME_WORKING | BDF_CLONE | BDF_PROTOTYPE, 4, HARDWARE_PREFIX_MIDWAY, GBF_SPORTSFOOTBALL, 0,
 	NULL, shimpactp4RomInfo, shimpactp4RomName, NULL, NULL, NULL, NULL, HiimpactInputInfo, ShimpactDIPInfo,
 	ShimpactInit, DrvExit, DrvFrame, DrvDraw, DrvScan, &BurnRecalc, 256,
-	400, 256, 4, 3
+	396, 256, 4, 3
 };
 
 
