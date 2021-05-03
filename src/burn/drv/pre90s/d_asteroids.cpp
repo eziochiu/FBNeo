@@ -930,7 +930,7 @@ static INT32 AstdeluxInit()
 
 	earom_init();
 
-	PokeyInit(12096000/8, 1, 2.40, 1);
+	PokeyInit(12096000/8, 1, 0.65, 1);
 	PokeySetTotalCyclesCB(M6502TotalCycles);
 	PokeyAllPotCallback(0, allpot_read);
 
@@ -1151,6 +1151,7 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin)
 
 		SCAN_VAR(avgOK);
 		SCAN_VAR(bankdata);
+		SCAN_VAR(nThrust);
 
 		if (astdelux)
 			pokey_scan(nAction, pnMin);
@@ -1163,10 +1164,6 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin)
 		M6502Open(0);
 		bankswitch(bankdata);
 		M6502Close();
-
-		if (avgOK) {
-			avgdvg_go();
-		}
 	}
 
 	return 0;
@@ -1605,7 +1602,7 @@ struct BurnDriver BurnDrvAstdelux = {
 	"astdelux", NULL, NULL, NULL, "1980",
 	"Asteroids Deluxe (rev 3)\0", NULL, "Atari", "Miscellaneous",
 	NULL, NULL, NULL, NULL,
-	BDF_GAME_WORKING | BDF_HISCORE_SUPPORTED, 2, HARDWARE_MISC_PRE90S, GBF_SHOOT, 0,
+	BDF_GAME_WORKING, 2, HARDWARE_MISC_PRE90S, GBF_SHOOT, 0,
 	NULL, astdeluxRomInfo, astdeluxRomName, NULL, NULL, NULL, NULL, AstdeluxInputInfo, AstdeluxDIPInfo,
 	AstdeluxInit, DrvExit, DrvFrame, DrvDraw, DrvScan, &DrvRecalc, 0x2000,
 	640, 480, 4, 3
@@ -1632,7 +1629,7 @@ struct BurnDriver BurnDrvAstdelux2 = {
 	"astdelux2", "astdelux", NULL, NULL, "1980",
 	"Asteroids Deluxe (rev 2)\0", NULL, "Atari", "Miscellaneous",
 	NULL, NULL, NULL, NULL,
-	BDF_GAME_WORKING | BDF_CLONE | BDF_HISCORE_SUPPORTED, 2, HARDWARE_MISC_PRE90S, GBF_SHOOT, 0,
+	BDF_GAME_WORKING | BDF_CLONE, 2, HARDWARE_MISC_PRE90S, GBF_SHOOT, 0,
 	NULL, astdelux2RomInfo, astdelux2RomName, NULL, NULL, NULL, NULL, AstdeluxInputInfo, AstdeluxDIPInfo,
 	AstdeluxInit, DrvExit, DrvFrame, DrvDraw, DrvScan, &DrvRecalc, 0x2000,
 	640, 480, 4, 3
@@ -1660,7 +1657,7 @@ struct BurnDriver BurnDrvAstdelux1 = {
 	"astdelux1", "astdelux", NULL, NULL, "1980",
 	"Asteroids Deluxe (rev 1)\0", NULL, "Atari", "Miscellaneous",
 	NULL, NULL, NULL, NULL,
-	BDF_GAME_WORKING | BDF_CLONE | BDF_HISCORE_SUPPORTED, 2, HARDWARE_MISC_PRE90S, GBF_SHOOT, 0,
+	BDF_GAME_WORKING | BDF_CLONE, 2, HARDWARE_MISC_PRE90S, GBF_SHOOT, 0,
 	NULL, astdelux1RomInfo, astdelux1RomName, NULL, NULL, NULL, NULL, AstdeluxInputInfo, AstdeluxDIPInfo,
 	AstdeluxInit, DrvExit, DrvFrame, DrvDraw, DrvScan, &DrvRecalc, 0x2000,
 	640, 480, 4, 3

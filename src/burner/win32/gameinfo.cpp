@@ -1,5 +1,6 @@
 // FB Neo Game Info and Favorites handling
 #include "burner.h"
+#include "richedit.h"
 
 static HWND hGameInfoDlg	= NULL;
 static HWND hParent			= NULL;
@@ -569,19 +570,29 @@ static int GameInfoInit()
 
 	FILE *fp = fopen(szFileName, "rt");
 	char Temp[10000];
+	char rom_token[255];
+	char DRIVER_NAME[255];
 	int inGame = 0;
 
 	TCHAR szBuffer[50000] = _T("{\\rtf1\\ansi{\\fonttbl(\\f0\\fnil\\fcharset0 Verdana;)}{\\colortbl;\\red220\\green0\\blue0;\\red0\\green0\\blue0;}");
+
+	GetHistoryDatHardwareToken(&rom_token[0]);
+	strcpy(DRIVER_NAME, BurnDrvGetTextA(DRV_NAME));
+
+	if (strncmp("$info=", rom_token, 6)) { // non-arcade game detected. (token not "$info=" !)
+		char *p = strchr(DRIVER_NAME, '_');
+		if (p) strcpy(DRIVER_NAME, p + 1); // change "nes_smb" -> "smb"
+	}
 
 	if (fp) {
 		while (!feof(fp)) {
 			char *Tokens;
 
 			fgets(Temp, 10000, fp);
-			if (!strncmp("$info=", Temp, 6)) {
+			if (!strncmp(rom_token, Temp, strlen(rom_token))) {
 				Tokens = strtok(Temp, "=,");
 				while (Tokens != NULL) {
-					if (!strcmp(Tokens, BurnDrvGetTextA(DRV_NAME))) {
+					if (!strcmp(Tokens, DRIVER_NAME)) {
 						inGame = 1;
 						break;
 					}
@@ -597,17 +608,19 @@ static int GameInfoInit()
 
 					if (!strncmp("$", Temp, 1)) continue;
 
+					TCHAR *cnvTemp = wstring_from_utf8(Temp);
+
 					if (!nTitleWrote) {
-						_stprintf(szBuffer, _T("%s{\\b\\f0\\fs28\\cf1 %s}"), szBuffer, ANSIToTCHAR(Temp, NULL, 0));
+						_stprintf(szBuffer, _T("%s{\\b\\f0\\fs28\\cf1\\f0 %s}"), szBuffer, cnvTemp);
 					} else {
 						_stprintf(szBuffer, _T("%s\\line"), szBuffer);
 						if (!strncmp("- ", Temp, 2)) {
-							_stprintf(szBuffer, _T("%s{\\b\\f0\\fs16\\cf1 %s}"), szBuffer, ANSIToTCHAR(Temp, NULL, 0));
+							_stprintf(szBuffer, _T("%s{\\b\\f0\\fs16\\cf1\\f0 %s}"), szBuffer, cnvTemp);
 						} else {
-							_stprintf(szBuffer, _T("%s{\\f0\\fs16\\cf2 %s}"), szBuffer, ANSIToTCHAR(Temp, NULL, 0));
+							_stprintf(szBuffer, _T("%s{\\f0\\fs16\\cf2\\f0 %s}"), szBuffer, cnvTemp);
 						}
 					}
-
+					free(cnvTemp);
 					if (strcmp("\n", Temp)) nTitleWrote = 1;
 				}
 				break;
@@ -617,7 +630,17 @@ static int GameInfoInit()
 	}
 
 	_stprintf(szBuffer, _T("%s}"), szBuffer);
-	SendMessage(GetDlgItem(hGameInfoDlg, IDC_MESSAGE_EDIT_ENG), WM_SETTEXT, (WPARAM)0, (LPARAM)szBuffer);
+
+	// convert wchar (utf16) to utf8.  RICHED20W control requires utf8 for rtf1 parsing! -dink april 27, 2021
+	char *pszBufferUTF8 = utf8_from_wstring(szBuffer);
+
+	// tell riched control to expect utf8 instead of utf16
+	SETTEXTEX TextInfo;
+	TextInfo.flags = ST_SELECTION;
+	TextInfo.codepage = CP_UTF8;
+
+	SendMessage(GetDlgItem(hGameInfoDlg, IDC_MESSAGE_EDIT_ENG), EM_SETTEXTEX, (WPARAM)&TextInfo, (LPARAM)pszBufferUTF8);
+	free(pszBufferUTF8);
 
 	// Make a white brush
 	hWhiteBGBrush = CreateSolidBrush(RGB(0xFF,0xFF,0xFF));

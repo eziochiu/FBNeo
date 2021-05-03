@@ -11159,7 +11159,7 @@ static struct BurnRomInfo MouncrstRomDesc[] = {
 	{ "w.7f",          0x01000, 0xb8ef3a6b, BRF_ESS | BRF_PRG | GAL_ROM_Z80_PROG1 },
 	{ "x.7h",          0x01000, 0xb878f354, BRF_ESS | BRF_PRG | GAL_ROM_Z80_PROG1 },
 	{ "y.7j",          0x01000, 0x021762f4, BRF_ESS | BRF_PRG | GAL_ROM_Z80_PROG1 },
-	{ "z.7k",          0x01000, 0x714330e5, BRF_ESS | BRF_PRG | GAL_ROM_Z80_PROG1 },
+	{ "z.7k",          0x01000, 0xf249ae30, BRF_ESS | BRF_PRG | GAL_ROM_Z80_PROG1 },
 	
 	{ "k.1h",          0x00800, 0x528da705, BRF_GRA | GAL_ROM_TILES_SHARED },
 	{ "m.1h",          0x00800, 0x5a4b17ea, BRF_GRA | GAL_ROM_TILES_SHARED },
@@ -20031,7 +20031,7 @@ static INT32 MonsterzInit()
 
 struct BurnDriver BurnDrvSfx = {
 	"sfx", NULL, NULL, NULL, "1983",
-	"SF-X\0", "Incomplete Sound", "Nichibutsu", "Galaxian",
+	"SF-X\0", "Incomplete Sound", "Taiyo System (Nichibutsu license)", "Galaxian",
 	NULL, NULL, NULL, NULL,
 	BDF_GAME_WORKING | BDF_HISCORE_SUPPORTED, 2, HARDWARE_GALAXIAN, GBF_HORSHOOT, 0,
 	NULL, SfxRomInfo, SfxRomName, NULL, NULL, NULL, NULL, SfxInputInfo, SfxDIPInfo,
@@ -20041,7 +20041,7 @@ struct BurnDriver BurnDrvSfx = {
 
 struct BurnDriverD BurnDrvSkelagon = {
 	"skelagon", "sfx", NULL, NULL, "1983",
-	"Skelagon\0", "Bad Dump", "Nichibutsu USA", "Galaxian",
+	"Skelagon\0", "Bad Dump", "Taiyo System (Nichibutsu USA license)", "Galaxian",
 	NULL, NULL, NULL, NULL,
 	BDF_CLONE, 2, HARDWARE_GALAXIAN, GBF_HORSHOOT, 0,
 	NULL, SkelagonRomInfo, SkelagonRomName, NULL, NULL, NULL, NULL, SfxInputInfo, SfxDIPInfo,
@@ -20050,8 +20050,8 @@ struct BurnDriverD BurnDrvSkelagon = {
 };
 
 struct BurnDriverD BurnDrvMonsterz = {
-	"monsterz", NULL, NULL, NULL, "19??",
-	"Monster Zero\0", "Protected", "Nihon", "Galaxian",
+	"monsterz", NULL, NULL, NULL, "1982",
+	"Monster Zero\0", "Protected", "Taiyo System", "Galaxian",
 	NULL, NULL, NULL, NULL,
 	0, 2, HARDWARE_GALAXIAN, GBF_HORSHOOT, 0,
 	NULL, MonsterzRomInfo, MonsterzRomName, NULL, NULL, NULL, NULL, SfxInputInfo, SfxDIPInfo,

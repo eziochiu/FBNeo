@@ -6,6 +6,7 @@
 #include "m6809_intf.h"
 #include "hd6309_intf.h"
 #include "k007121.h"
+#include "k007452.h"
 
 static UINT8 *AllMem;
 static UINT8 *MemEnd;
@@ -31,6 +32,9 @@ static UINT8 *DrvSprRAM;
 static UINT32 *DrvPalette;
 static UINT32 *Palette;
 static UINT8  DrvRecalc;
+
+static INT32 nExtraCycles;
+
 static UINT8 *pDrvSprRAM0;
 static UINT8 *pDrvSprRAM1;
 
@@ -203,10 +207,28 @@ void contra_bankswitch_w(INT32 data)
 	}
 }
 
+static void sound_sync()
+{
+	INT32 cyc = HD6309TotalCycles() - M6809TotalCycles();
+	if (cyc > 0) {
+		BurnTimerUpdate(M6809TotalCycles() + cyc);
+	}
+}
+
 UINT8 DrvContraHD6309ReadByte(UINT16 address)
 {
 	switch (address)
 	{
+		case 0x0008:
+		case 0x0009:
+		case 0x000A:
+		case 0x000B:
+		case 0x000C:
+		case 0x000D:
+		case 0x000E:
+		case 0x000F:
+			return K007452Read(address & 7);
+
 		case 0x0010:
 		case 0x0011:
 		case 0x0012:
@@ -262,15 +284,28 @@ void DrvContraHD6309WriteByte(UINT16 address, UINT8 data)
 			contra_K007121_ctrl_0_w(address & 7, data);
 		return;
 
+		case 0x0008:
+		case 0x0009:
+		case 0x000A:
+		case 0x000B:
+		case 0x000C:
+		case 0x000D:
+		case 0x000E:
+		case 0x000F:
+			K007452Write(address & 7, data);
+		return;
+
 		case 0x0018:
 			// coin counter
 		return;
 
 		case 0x001a:
-			M6809SetIRQLine(0, CPU_IRQSTATUS_AUTO);
+			sound_sync();
+			M6809SetIRQLine(0, CPU_IRQSTATUS_HOLD);
 		return;
 
 		case 0x001c:
+			sound_sync();
 			soundlatch = data;
 		return;
 
@@ -312,6 +347,10 @@ void DrvContraM6809SoundWriteByte(UINT16 address, UINT8 data)
 		case 0x2000:
 		case 0x2001:
 			BurnYM2151Write(address & 1, data);
+		return;
+
+		case 0x4000:
+			// nop
 		return;
 	}
 }
@@ -406,8 +445,11 @@ static INT32 DrvDoReset()
 
 	k007121_reset();
 
+	K007452Reset();
+
 	soundlatch = 0;
 	nBankData = 0;
+	nExtraCycles = 0;
 
 	HiscoreReset();
 
@@ -460,9 +502,10 @@ static INT32 CommonInit(INT32 (*pRomLoad)())
 	M6809SetWriteHandler(DrvContraM6809SoundWriteByte);
 	M6809Close();
 
-	BurnYM2151Init(3579545);
+	BurnYM2151InitBuffered(3579545, 1, NULL, 0);
 	BurnYM2151SetRoute(BURN_SND_YM2151_YM2151_ROUTE_1, 0.60, BURN_SND_ROUTE_LEFT);
 	BurnYM2151SetRoute(BURN_SND_YM2151_YM2151_ROUTE_2, 0.60, BURN_SND_ROUTE_RIGHT);
+	BurnTimerAttachM6809(3000000);
 
 	DrvDoReset();
 
@@ -734,11 +777,12 @@ static INT32 DrvDraw()
 
 static INT32 DrvFrame()
 {
-	INT32 nInterleave = 256;
-	
 	if (DrvReset) {
 		DrvDoReset();
 	}
+
+	HD6309NewFrame();
+	M6809NewFrame();
 
 	{
 		DrvInputs[0] = DrvInputs[1] = DrvInputs[2] = 0xff;
@@ -756,50 +800,32 @@ static INT32 DrvFrame()
 		if ((DrvInputs[2] & 0x0c) == 0) DrvInputs[2] |= 0x0c;
 	}
 
-	INT32 nCyclesSegment = 0;
-	INT32 nSoundBufferPos = 0;
-	INT32 nCyclesTotal[2] =  { 12000000 / 60, 3000000 / 60 };
-	INT32 nCyclesDone[2] =  { 0, 0 };
+	INT32 nInterleave = 256;
+	INT32 nCyclesTotal[2] =  { 3000000 / 60, 3000000 / 60 };
+	INT32 nCyclesDone[2] =  { nExtraCycles, 0 };
 
 	HD6309Open(0);
 	M6809Open(0);
 
 	for (INT32 i = 0; i < nInterleave; i++) {
-		INT32 nCurrentCPU, nNext;
-		
-		nCurrentCPU = 0;
-		nNext = (i + 1) * nCyclesTotal[nCurrentCPU] / nInterleave;
-		nCyclesSegment = nNext - nCyclesDone[nCurrentCPU];
-		nCyclesDone[nCurrentCPU] += HD6309Run(nCyclesSegment);
+		CPU_RUN(0, HD6309);
+
 		if (i == 240 && (k007121_ctrl_read(0, 7) & 0x02)) {
-			HD6309SetIRQLine(0, CPU_IRQSTATUS_AUTO);
+			HD6309SetIRQLine(0, CPU_IRQSTATUS_HOLD);
 		}
 
-		nCurrentCPU = 1;
-		nNext = (i + 1) * nCyclesTotal[nCurrentCPU] / nInterleave;
-		nCyclesSegment = nNext - nCyclesDone[nCurrentCPU];
-		nCyclesDone[nCurrentCPU] += M6809Run(nCyclesSegment);
-
-		if (pBurnSoundOut && i%16 == 15) {
-			INT32 nSegmentLength = nBurnSoundLen / (nInterleave / 16);
-			INT16* pSoundBuf = pBurnSoundOut + (nSoundBufferPos << 1);
-			BurnYM2151Render(pSoundBuf, nSegmentLength);
-			nSoundBufferPos += nSegmentLength;
-		}
+		CPU_RUN_TIMER(1);
 	}
+
+	nExtraCycles = nCyclesDone[0] - nCyclesTotal[0];
 
 	M6809Close();
 	HD6309Close();
 
 	if (pBurnSoundOut) {
-		INT32 nSegmentLength = nBurnSoundLen - nSoundBufferPos;
-		INT16* pSoundBuf = pBurnSoundOut + (nSoundBufferPos << 1);
-
-		if (nSegmentLength) {
-			M6809Open(0);
-			BurnYM2151Render(pSoundBuf, nSegmentLength);
-			M6809Close();
-		}
+		M6809Open(0);
+		BurnYM2151Render(pBurnSoundOut, nBurnSoundLen);
+		M6809Close();
 	}
 
 	if (pBurnDraw) {
@@ -830,17 +856,18 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin)
 		M6809Scan(nAction);
 
 		k007121_scan(nAction);
+		K007452Scan(nAction);
 
 		BurnYM2151Scan(nAction, pnMin);
 
 		SCAN_VAR(soundlatch);
 		SCAN_VAR(nBankData);
+		SCAN_VAR(nExtraCycles);
 
 		if (nAction & ACB_WRITE) {
 			HD6309Open(0);
 			contra_bankswitch_w(nBankData);
 			HD6309Close();
-			DrvRecalc = 1;
 		}
 	}
 

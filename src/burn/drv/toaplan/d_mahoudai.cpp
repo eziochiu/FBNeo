@@ -87,7 +87,7 @@ static struct BurnInputInfo mahoudaiInputList[] = {
 	{"P2 Button 3",	BIT_DIGITAL,	DrvJoy2 + 6,	"p2 fire 3"	},
 
 	{"Reset",		BIT_DIGITAL,	&DrvReset,		"reset"		},
-	{"Diagnostics",	BIT_DIGITAL,	DrvButton + 0,	"diag"		},
+	{"Service",		BIT_DIGITAL,	DrvButton + 0,	"service"	},
 	{"Dip A",		BIT_DIPSWITCH,	DrvInput + 3,	"dip"		},
 	{"Dip B",		BIT_DIPSWITCH,	DrvInput + 4,	"dip"		},
 	{"Dip C",		BIT_DIPSWITCH,	DrvInput + 5,	"dip"		},
@@ -530,9 +530,9 @@ static INT32 DrvInit()
 	ToaPalInit();
 
 	BurnYM2151Init(27000000 / 8);
-	BurnYM2151SetAllRoutes(1.00, BURN_SND_ROUTE_BOTH);
+	BurnYM2151SetAllRoutes(0.70, BURN_SND_ROUTE_BOTH);
 	MSM6295Init(0, 32000000 / 32 / 132, 1);
-	MSM6295SetRoute(0, 1.00, BURN_SND_ROUTE_BOTH);
+	MSM6295SetRoute(0, 0.70, BURN_SND_ROUTE_BOTH);
 
 	DrvDoReset();												// Reset machine
 	return 0;
