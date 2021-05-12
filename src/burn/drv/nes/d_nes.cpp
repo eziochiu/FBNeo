@@ -17538,6 +17538,23 @@ STD_ROM_FN(nes_atrainj)
 
 // Homebrew (hand-added)
 
+static struct BurnRomInfo nes_mnmayhemRomDesc[] = {
+	{ "Mine Mayhem (2021)(Vectrex28).nes",          65552, 0xc6b47cca, BRF_ESS | BRF_PRG },
+};
+
+STD_ROM_PICK(nes_mnmayhem)
+STD_ROM_FN(nes_mnmayhem)
+
+struct BurnDriver BurnDrvnes_mnmayhem = {
+	"nes_mnmayhem", NULL, NULL, NULL, "2021",
+	"Mine Mayhem (HB)\0", NULL, "Vectrex28", "Miscellaneous",
+	NULL, NULL, NULL, NULL,
+	BDF_GAME_WORKING | BDF_HOMEBREW, 1, HARDWARE_NES, GBF_PLATFORM, 0,
+	NESGetZipName, nes_mnmayhemRomInfo, nes_mnmayhemRomName, NULL, NULL, NULL, NULL, NESInputInfo, NESDIPInfo,
+	NESInit, NESExit, NESFrame, NESDraw, NESScan, &NESRecalc, 0x40,
+	SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT
+};
+
 static struct BurnRomInfo nes_luckypenguinRomDesc[] = {
 	{ "Lucky Penguin (2019)(Mega Cat Studios).nes",          65552, 0x2a4c310b, BRF_ESS | BRF_PRG },
 };
@@ -32516,6 +32533,57 @@ struct BurnDriver BurnDrvnes_kingkin = {
 	NULL, NULL, NULL, NULL,
 	BDF_GAME_WORKING, 2, HARDWARE_NES, GBF_MISC, 0,
 	NESGetZipName, nes_kingkinRomInfo, nes_kingkinRomName, NULL, NULL, NULL, NULL, NESInputInfo, NESDIPInfo,
+	NESInit, NESExit, NESFrame, NESDraw, NESScan, &NESRecalc, 0x40,
+	SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT
+};
+
+static struct BurnRomInfo nes_kingsbeaRomDesc[] = {
+	{ "Kings of the Beach (USA).nes",          65552, 0xba602ea1, BRF_ESS | BRF_PRG },
+};
+
+STD_ROM_PICK(nes_kingsbea)
+STD_ROM_FN(nes_kingsbea)
+
+struct BurnDriver BurnDrvnes_kingsbea = {
+	"nes_kingsbea", NULL, NULL, NULL, "1990",
+	"Kings of the Beach (USA)\0", NULL, "Ultra Games", "Miscellaneous",
+	NULL, NULL, NULL, NULL,
+	BDF_GAME_WORKING, 4, HARDWARE_NES, GBF_MISC, 0,
+	NESGetZipName, nes_kingsbeaRomInfo, nes_kingsbeaRomName, NULL, NULL, NULL, NULL, NES4ScoreInputInfo, NES4ScoreDIPInfo,
+	NES4ScoreInit, NESExit, NESFrame, NESDraw, NESScan, &NESRecalc, 0x40,
+	SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT
+};
+
+static struct BurnRomInfo nes_missisatjikjRomDesc[] = {
+	{ "Mississippi Satsujin Jiken (Japan).nes",          163856, 0x5d003ead, BRF_ESS | BRF_PRG },
+};
+
+STD_ROM_PICK(nes_missisatjikj)
+STD_ROM_FN(nes_missisatjikj)
+
+struct BurnDriver BurnDrvnes_missisatjikj = {
+	"nes_missisatjikj", "nes_missisatjik", NULL, NULL, "1986",
+	"Mississippi Satsujin Jiken (Japan)\0", NULL, "Jaleco", "Miscellaneous",
+	NULL, NULL, NULL, NULL,
+	BDF_GAME_WORKING | BDF_CLONE, 2, HARDWARE_NES, GBF_MISC, 0,
+	NESGetZipName, nes_missisatjikjRomInfo, nes_missisatjikjRomName, NULL, NULL, NULL, NULL, NESInputInfo, NESDIPInfo,
+	NESInit, NESExit, NESFrame, NESDraw, NESScan, &NESRecalc, 0x40,
+	SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT
+};
+
+static struct BurnRomInfo nes_missisatjikRomDesc[] = {
+	{ "Mississippi Satsujin Jiken (T-Eng).nes",          163856, 0xf698e872, BRF_ESS | BRF_PRG },
+};
+
+STD_ROM_PICK(nes_missisatjik)
+STD_ROM_FN(nes_missisatjik)
+
+struct BurnDriver BurnDrvnes_missisatjik = {
+	"nes_missisatjik", NULL, NULL, NULL, "1989?",
+	"Mississippi Satsujin Jiken (T-Eng)\0", NULL, "Nintendo", "Miscellaneous",
+	NULL, NULL, NULL, NULL,
+	BDF_GAME_WORKING, 2, HARDWARE_NES, GBF_MISC, 0,
+	NESGetZipName, nes_missisatjikRomInfo, nes_missisatjikRomName, NULL, NULL, NULL, NULL, NESInputInfo, NESDIPInfo,
 	NESInit, NESExit, NESFrame, NESDraw, NESScan, &NESRecalc, 0x40,
 	SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT
 };
