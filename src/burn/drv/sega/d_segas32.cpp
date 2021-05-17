@@ -2496,11 +2496,11 @@ static void system32_sound_init()
 
 	BurnYM3438Init(2, 8053975, &DrvFMIRQHandler, 0);
 	BurnTimerAttach(&ZetConfig, 8053975);
-	BurnYM3438SetAllRoutes(0, 0.40, BURN_SND_ROUTE_BOTH);
-	BurnYM3438SetAllRoutes(1, 0.40, BURN_SND_ROUTE_BOTH);
+	BurnYM3438SetAllRoutes(0, 0.20, BURN_SND_ROUTE_BOTH);
+	BurnYM3438SetAllRoutes(1, 0.20, BURN_SND_ROUTE_BOTH);
 
 	RF5C68PCMInit(12500000, ZetTotalCycles, 8053975, 1);
-	RF5C68PCMSetAllRoutes(1.00, BURN_SND_ROUTE_BOTH);
+	RF5C68PCMSetAllRoutes(0.55, BURN_SND_ROUTE_BOTH);
 }
 
 static void multi32_sound_init()
@@ -5000,7 +5000,7 @@ struct BurnDriver BurnDrvGa2 = {
 	"ga2", NULL, NULL, NULL, "1992",
 	"Golden Axe: The Revenge of Death Adder (World, Rev B)\0", NULL, "Sega", "System 32",
 	NULL, NULL, NULL, NULL,
-	BDF_GAME_WORKING, 4, HARDWARE_SEGA_MISC, GBF_VSFIGHT, 0,
+	BDF_GAME_WORKING, 4, HARDWARE_SEGA_MISC, GBF_SCRFIGHT, 0,
 	NULL, ga2RomInfo, ga2RomName, NULL, NULL, NULL, NULL, Ga2InputInfo, Ga2DIPInfo,
 	Ga2Init, DrvExit, DrvFrame, DrvDraw, DrvScan, &DrvRecalc, 0x8000,
 	320, 224, 4, 3
@@ -5042,7 +5042,7 @@ struct BurnDriver BurnDrvGa2u = {
 	"ga2u", "ga2", NULL, NULL, "1992",
 	"Golden Axe: The Revenge of Death Adder (US, Rev A)\0", NULL, "Sega", "System 32",
 	NULL, NULL, NULL, NULL,
-	BDF_GAME_WORKING | BDF_CLONE, 4, HARDWARE_SEGA_MISC, GBF_VSFIGHT, 0,
+	BDF_GAME_WORKING | BDF_CLONE, 4, HARDWARE_SEGA_MISC, GBF_SCRFIGHT, 0,
 	NULL, ga2uRomInfo, ga2uRomName, NULL, NULL, NULL, NULL, Ga2uInputInfo, Ga2uDIPInfo,
 	Ga2Init, DrvExit, DrvFrame, DrvDraw, DrvScan, &DrvRecalc, 0x8000,
 	320, 224, 4, 3
@@ -5084,7 +5084,7 @@ struct BurnDriver BurnDrvGa2j = {
 	"ga2j", "ga2", NULL, NULL, "1992",
 	"Golden Axe: The Revenge of Death Adder (Japan)\0", NULL, "Sega", "System 32",
 	NULL, NULL, NULL, NULL,
-	BDF_GAME_WORKING | BDF_CLONE, 4, HARDWARE_SEGA_MISC, GBF_VSFIGHT, 0,
+	BDF_GAME_WORKING | BDF_CLONE, 4, HARDWARE_SEGA_MISC, GBF_SCRFIGHT, 0,
 	NULL, ga2jRomInfo, ga2jRomName, NULL, NULL, NULL, NULL, Ga2InputInfo, Ga2DIPInfo,
 	Ga2Init, DrvExit, DrvFrame, DrvDraw, DrvScan, &DrvRecalc, 0x8000,
 	320, 224, 4, 3
