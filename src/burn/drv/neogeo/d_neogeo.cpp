@@ -13595,7 +13595,7 @@ static INT32 mslug4Init()
 
 struct BurnDriver BurnDrvmslug4 = {
 	"mslug4", NULL, "neogeo", NULL, "2002",
-	"Metal Slug 4 (NGM-2630)\0", NULL, "Mega", "Neo Geo MVS",
+	"Metal Slug 4 (NGM-2630)\0", NULL, "Mega / Noise Factory / Playmore", "Neo Geo MVS",
 	NULL, NULL, NULL, NULL,
 	BDF_GAME_WORKING, 2, HARDWARE_PREFIX_CARTRIDGE | HARDWARE_SNK_NEOGEO | HARDWARE_SNK_CMC50 | HARDWARE_SNK_ENCRYPTED_M1, GBF_RUNGUN, FBF_MSLUG,
 	NULL, mslug4RomInfo, mslug4RomName, NULL, NULL, NULL, NULL, neogeoInputInfo, neogeoDIPInfo,
@@ -13633,7 +13633,7 @@ STD_ROM_FN(mslug4h)
 
 struct BurnDriver BurnDrvmslug4h = {
 	"mslug4h", "mslug4", "neogeo", NULL, "2002",
-	"Metal Slug 4 (NGH-2630)\0", NULL, "Mega", "Neo Geo MVS",
+	"Metal Slug 4 (NGH-2630)\0", NULL, "Mega / Noise Factory / Playmore", "Neo Geo MVS",
 	NULL, NULL, NULL, NULL,
 	BDF_GAME_WORKING | BDF_CLONE, 2, HARDWARE_PREFIX_CARTRIDGE | HARDWARE_SNK_NEOGEO | HARDWARE_SNK_CMC50 | HARDWARE_SNK_ENCRYPTED_M1, GBF_RUNGUN, FBF_MSLUG,
 	NULL, mslug4hRomInfo, mslug4hRomName, NULL, NULL, NULL, NULL, neogeoInputInfo, neogeoDIPInfo,
@@ -14602,6 +14602,42 @@ struct BurnDriver BurnDrvAof3bh = {
 	0x1000, 304, 224, 4, 3
 };
 
+// Blazing Star Stage Select Mod by Clear Paper, NeoCverA, JustinG
+
+static struct BurnRomInfo blazstarcmRomDesc[] = {
+	{ "239-p1_cm.p1",    0x100000, 0x077ba687, 1 | BRF_ESS | BRF_PRG }, //  0 68K code
+	{ "239-p2.sp2",   0x200000, 0x9a9f4154, 1 | BRF_ESS | BRF_PRG }, //  1
+
+	{ "239-s1.s1",    0x020000, 0xd56cb498, 2 | BRF_GRA },           //  2 Text layer tiles
+
+	{ "239-c1.c1",    0x400000, 0x84f6d584, 3 | BRF_GRA },           //  3 Sprite data
+	{ "239-c2.c2",    0x400000, 0x05a0cb22, 3 | BRF_GRA },           //  4
+	{ "239-c3.c3",    0x400000, 0x5fb69c9e, 3 | BRF_GRA },           //  5
+	{ "239-c4.c4",    0x400000, 0x0be028c4, 3 | BRF_GRA },           //  6
+	{ "239-c5.c5",    0x400000, 0x74bae5f8, 3 | BRF_GRA },           //  7
+	{ "239-c6.c6",    0x400000, 0x4e0700d2, 3 | BRF_GRA },           //  8
+	{ "239-c7.c7",    0x400000, 0x010ff4fd, 3 | BRF_GRA },           //  9
+	{ "239-c8.c8",    0x400000, 0xdb60460e, 3 | BRF_GRA },           // 10
+
+	{ "239-m1.m1",    0x020000, 0xd31a3aea, 4 | BRF_ESS | BRF_PRG }, // 11 Z80 code
+
+	{ "239-v1.v1",    0x400000, 0x1b8d5bf7, 5 | BRF_SND },           // 12 Sound data
+	{ "239-v2.v2",    0x400000, 0x74cf0a70, 5 | BRF_SND },           // 13
+};
+
+STDROMPICKEXT(blazstarcm, blazstarcm, neogeo)
+STD_ROM_FN(blazstarcm)
+
+struct BurnDriver BurnDrvblazstarcm = {
+	"blazstarcm", "blazstar", "neogeo", NULL, "2020",
+	"Blazing Star (Stage Select Hack)\0", NULL, "Clear Paper, NeoCverA, JustinG", "Neo Geo MVS",
+	NULL, NULL, NULL, NULL,
+	BDF_GAME_WORKING | BDF_CLONE | BDF_HACK, 2, HARDWARE_PREFIX_CARTRIDGE | HARDWARE_SNK_NEOGEO, GBF_HORSHOOT, 0,
+	NULL, blazstarcmRomInfo, blazstarcmRomName, NULL, NULL, NULL, NULL, neogeoInputInfo, neogeoDIPInfo,
+	NeoInit, NeoExit, NeoFrame, NeoRender, NeoScan, &NeoRecalcPalette,
+	0x1000,	304, 224, 4, 3
+};
+
 // Breakers Revenge (Boss Hack)
 // Enable Bai-Hu, with portrait - Hack by yumeji1768 [2ch]
 
@@ -15363,7 +15399,7 @@ struct BurnDriver BurnDrvMSlug2t = {
 	"mslug2t", "mslug2", "neogeo", NULL, "2015",
 	"Metal Slug 2 Turbo (NGM-9410)\0", NULL, "Hack", "Neo Geo MVS",
 	NULL, NULL, NULL, NULL,
-	BDF_GAME_WORKING | BDF_CLONE | BDF_HACK, 2, HARDWARE_PREFIX_CARTRIDGE | HARDWARE_SNK_NEOGEO, GBF_RUNGUN, FBF_MSLUG,
+	BDF_GAME_WORKING | BDF_CLONE | BDF_HISCORE_SUPPORTED | BDF_HACK, 2, HARDWARE_PREFIX_CARTRIDGE | HARDWARE_SNK_NEOGEO, GBF_RUNGUN, FBF_MSLUG,
 	NULL, mslug2tRomInfo, mslug2tRomName, NULL, NULL, NULL, NULL, neogeoInputInfo, neogeoDIPInfo,
 	NeoInit, NeoExit, NeoFrame, NeoRender, NeoScan, &NeoRecalcPalette,
 	0x1000, 304, 224, 4, 3
@@ -16589,18 +16625,18 @@ struct BurnDriver BurnDrvkof97pla = {
 // The King of Fighters '97 oroshi plus 2003
 
 static struct BurnRomInfo kof97oroRomDesc[] = {
-	{ "orochi-p1.bin",  0x0100000, 0x6DCB2946, 1 | BRF_ESS | BRF_PRG }, //  0 68K code
-	{ "orochi-p21.bin", 0x0200000, 0x6E1C4D8C, 1 | BRF_ESS | BRF_PRG }, //  1
-	{ "orochi-p29.bin", 0x0200000, 0x4C7C0221, 1 | BRF_ESS | BRF_PRG }, //  2
+	{ "orochi-p1.bin",  0x0100000, 0x6dcb2946, 1 | BRF_ESS | BRF_PRG }, //  0 68K code
+	{ "orochi-p21.bin", 0x0200000, 0x6e1c4d8c, 1 | BRF_ESS | BRF_PRG }, //  1
+	{ "orochi-p29.bin", 0x0200000, 0x4c7c0221, 1 | BRF_ESS | BRF_PRG }, //  2
 
-	{ "orochi-s1.bin",  0x0020000, 0x4EE2149A, 2 | BRF_GRA },           //  3 Text layer tiles
+	{ "orochi-s1.bin",  0x0020000, 0x4ee2149a, 2 | BRF_GRA },           //  3 Text layer tiles
 
-	{ "orochi-c1.bin",  0x1000000, 0xF13E841C, 3 | BRF_GRA },           //  4 Sprite data
-	{ "orochi-c2.bin",  0x1000000, 0x2DB1F6D3, 3 | BRF_GRA },           //  5
-	{ "orochi-c51.bin", 0x0200000, 0xA90340CB, 3 | BRF_GRA },           //  6
-	{ "orochi-c61.bin", 0x0200000, 0x188E351A, 3 | BRF_GRA },           //  7
-	{ "orochi-c52.bin", 0x0200000, 0xD4EEC50A, 3 | BRF_GRA },           //  8
-	{ "orochi-c62.bin", 0x0200000, 0x031B1AD5, 3 | BRF_GRA },           //  9
+	{ "orochi-c1.bin",  0x1000000, 0xf13e841c, 3 | BRF_GRA },           //  4 Sprite data
+	{ "orochi-c2.bin",  0x1000000, 0x2db1f6d3, 3 | BRF_GRA },           //  5
+	{ "orochi-c51.bin", 0x0200000, 0xa90340cb, 3 | BRF_GRA },           //  6
+	{ "orochi-c61.bin", 0x0200000, 0x188e351a, 3 | BRF_GRA },           //  7
+	{ "orochi-c52.bin", 0x0200000, 0xd4eec50a, 3 | BRF_GRA },           //  8
+	{ "orochi-c62.bin", 0x0200000, 0x031b1ad5, 3 | BRF_GRA },           //  9
 
 	{ "orochi-m1.bin",  0x0020000, 0x45348747, 4 | BRF_ESS | BRF_PRG }, // 10 Z80 code
 
@@ -20593,31 +20629,22 @@ struct BurnDriver BurnDrvNblktiger = {
 // https://ozzyouzo.itch.io/teot
 
 static struct BurnRomInfo teotRomDesc[] = {
-	{ "teot-p1.bin",    0x100000, 0x3ab0b686, 1 | BRF_ESS | BRF_PRG }, //  0 68K code
-	{ "teot-p2.bin",    0x100000, 0x258909d5, 1 | BRF_ESS | BRF_PRG }, //  1 68K code
+	{ "teot-p1.bin",    0x0100000, 0x9038ff78, 1 | BRF_ESS | BRF_PRG }, //  0 68K code
+	{ "teot-p2.bin",    0x0800000, 0xfe363160, 1 | BRF_ESS | BRF_PRG }, //  1 68K code
 
-	{ "teot-s1.bin",    0x020000, 0xa545b593, 2 | BRF_GRA },           //  2 Text layer tiles
+	{ "teot-s1.bin",    0x0020000, 0xa545b593, 2 | BRF_GRA },           //  2 Text layer tiles
 
-	{ "teot-c1.bin",    0x800000, 0x94080cf2, 3 | BRF_GRA },           //  3 Sprite data
-	{ "teot-c2.bin",    0x800000, 0xfb5116b6, 3 | BRF_GRA },           //  4
+	{ "teot-c1.bin",    0x1000000, 0x28872e1f, 3 | BRF_GRA },           //  3 Sprite data
+	{ "teot-c2.bin",    0x1000000, 0xfe31d1fc, 3 | BRF_GRA },           //  4
 #if 0
-	{ "teot-c3.bin",    0x800000, 0x94080cf2, 3 | BRF_GRA },           //  Duplicate Sprite data files
-	{ "teot-c4.bin",    0x800000, 0xfb5116b6, 3 | BRF_GRA },           //
-	{ "teot-c5.bin",    0x800000, 0x94080cf2, 3 | BRF_GRA },           //  
-	{ "teot-c6.bin",    0x800000, 0xfb5116b6, 3 | BRF_GRA },           //
-	{ "teot-c7.bin",    0x800000, 0x94080cf2, 3 | BRF_GRA },           //  
-	{ "teot-c8.bin",    0x800000, 0xfb5116b6, 3 | BRF_GRA },           //
+	{ "teot-c3.bin",    0x1000000, 0x28872e1f, 3 | BRF_GRA },           //  Duplicate Sprite data files
+	{ "teot-c4.bin",    0x1000000, 0xfe31d1fc, 3 | BRF_GRA },
 #endif
 
-	{ "teot-m1.bin",    0x010000, 0x62bd5336, 4 | BRF_ESS | BRF_PRG }, //  5 Z80 code
+	{ "teot-m1.bin",    0x0010000, 0x31b05f06, 4 | BRF_ESS | BRF_PRG }, //  5 Z80 code
 
-	{ "teot-v1.bin",    0x100000, 0xa0906304, 5 | BRF_SND },           //  6 Sound data
-	{ "teot-v2.bin",    0x100000, 0xc5e10c1a, 5 | BRF_SND },           //  7
-	{ "teot-v3.bin",    0x100000, 0xcb78034b, 5 | BRF_SND },           //  8
-	{ "teot-v4.bin",    0x100000, 0x4a2d0d6d, 5 | BRF_SND },           //  9
-	{ "teot-v5.bin",    0x100000, 0x51285019, 5 | BRF_SND },           // 10
-	{ "teot-v6.bin",    0x100000, 0x03641f40, 5 | BRF_SND },           // 11
-	{ "teot-v7.bin",    0x100000, 0xe425eff3, 5 | BRF_SND },           // 12
+	{ "teot-v1.bin",    0x0800000, 0x299d84cf, 5 | BRF_SND },           //  6 Sound data
+	{ "teot-v2.bin",    0x0800000, 0xaced6c72, 5 | BRF_SND },           //  7
 };
 
 STDROMPICKEXT(teot, teot, neogeo)

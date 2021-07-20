@@ -15,10 +15,16 @@
 #import "FBInput.h"
 
 #import "AppDelegate.h"
+#import "NSString+Etc.h"
 
 #include "burner.h"
 
+//#define DEBUG_GP
+
 static const int keyCodeCount = 0x80;
+static const int maxJoysticks = 8;
+static const int maxJoyButtons = 128;
+static const int deadzoneWidth = 50;
 static const int keyCodeToFbk[] = {
     FBK_A, // 00
     FBK_S, // 01
@@ -151,20 +157,163 @@ static const int keyCodeToFbk[] = {
 };
 static unsigned char keyState[256];
 static unsigned char simKeyState[256];
+static unsigned char joyState[maxJoysticks][256];
+
+#pragma mark - FBInputInfo
+
+@implementation FBInputInfo
+
+- (instancetype) init
+{
+    if (self = [super init]) {
+    }
+    return self;
+}
+
+- (instancetype) initWithCode:(NSString *) code
+                        title:(NSString *) title
+{
+    if (self = [super init]) {
+        _code = code;
+        _title = title;
+    }
+    return self;
+}
+
+- (int) playerIndex
+{
+    if (_code.length < 4) {
+        return false;
+    }
+    char digit = [_code characterAtIndex:1];
+    if ([_code characterAtIndex:0] == 'p'
+        && digit >= '0' && digit <= '9'
+        && [_code characterAtIndex:2] == ' ') {
+        return digit - '0';
+    }
+    return -1;
+}
+
+- (NSString *) neutralTitle
+{
+    if (_title.length < 4) {
+        return _title;
+    }
+    char digit = [_title characterAtIndex:1];
+    if ([_title characterAtIndex:0] == 'P'
+        && digit >= '0' && digit <= '9'
+        && [_title characterAtIndex:2] == ' ') {
+        return [_title substringFromIndex:3];
+    }
+    return _title;
+}
+
+@end
+
+#pragma mark - FBInput
 
 @implementation FBInput
+{
+    BOOL _hasFocus;
+}
 
 #pragma mark - Init and dealloc
 
 - (instancetype) init
 {
     if (self = [super init]) {
+        [AKGamepadManager.sharedInstance addObserver:self];
+        _hasFocus = NO;
     }
 
     return self;
 }
 
+- (void) dealloc
+{
+    [AKGamepadManager.sharedInstance removeObserver:self];
+}
+
+#pragma mark - AKGamepadDelegate
+
+- (void) gamepadDidConnect:(AKGamepad *) gamepad
+{
+    // FIXME!!
+//    NSString *gpId = [gamepad vendorProductString];
+//    FXButtonMap *map = [_config mapWithId:gpId];
+//    if (!map) {
+//        map = [self defaultGamepadMap:gamepad];
+//        [map setDeviceId:gpId];
+//        [_config setMap:map];
+//    }
+
+#ifdef DEBUG_GP
+    NSLog(@"Gamepad \"%@\" connected to port %i",
+          gamepad.name, (int) gamepad.index);
+#endif
+}
+
+- (void) gamepadDidDisconnect:(AKGamepad *) gamepad
+{
+#ifdef DEBUG_GP
+    NSLog(@"Gamepad \"%@\" disconnected from port %i",
+          gamepad.name, (int) gamepad.index);
+#endif
+}
+
+- (void) gamepad:(AKGamepad *) gamepad
+        xChanged:(NSInteger) newValue
+          center:(NSInteger) center
+       eventData:(AKGamepadEventData *) eventData
+{
+    if (gamepad.index >= maxJoysticks) {
+        return;
+    }
+    joyState[gamepad.index][0x00] = center - newValue > deadzoneWidth; // L
+    joyState[gamepad.index][0x01] = newValue - center > deadzoneWidth; // R
+#ifdef DEBUG_GP
+    NSLog(@"Joystick X: %ld (center: %ld) on gamepad %@",
+          newValue, center, gamepad);
+#endif
+}
+
+- (void) gamepad:(AKGamepad *) gamepad
+        yChanged:(NSInteger) newValue
+          center:(NSInteger) center
+       eventData:(AKGamepadEventData *) eventData
+{
+    if (gamepad.index >= maxJoysticks) {
+        return;
+    }
+    joyState[gamepad.index][0x02] = center - newValue > deadzoneWidth; // U
+    joyState[gamepad.index][0x03] = newValue - center > deadzoneWidth; // D
+#ifdef DEBUG_GP
+    NSLog(@"Joystick Y: %ld (center: %ld) on gamepad %@",
+          newValue, center, gamepad);
+#endif
+}
+
+- (void) gamepad:(AKGamepad *) gamepad
+          button:(NSUInteger) index
+          isDown:(BOOL) isDown
+       eventData:(AKGamepadEventData *) eventData
+{
+    if (gamepad.index >= maxJoysticks || index > maxJoyButtons) {
+        return;
+    }
+    joyState[gamepad.index][0x80+index-1] = isDown;
+#ifdef DEBUG_GP
+    NSLog(@"Button %ld %@ on gamepad %@", index, gamepad,
+          isDown ? @"down" : @"up");
+#endif
+}
+
 #pragma mark - Interface
+
+- (void) setFocus:(BOOL) focus
+{
+    _hasFocus = focus;
+}
 
 - (void) simReset
 {
@@ -201,6 +350,56 @@ static unsigned char simKeyState[256];
         if (bii.nType == BIT_ANALOG_REL && strstr(bii.szName, "mouse") == 0)
             return YES;
 
+    return NO;
+}
+
+- (NSArray<FBInputInfo *> *) allInputs
+{
+    NSMutableArray<FBInputInfo *> *inputs = [NSMutableArray array];
+    if (nBurnDrvActive == ~0U) {
+        return inputs;
+    }
+    struct BurnInputInfo bii;
+    for (int i = 0; i < 0x1000; i++) {
+        if (BurnDrvGetInputInfo(&bii, i)) {
+            break;
+        }
+        if (bii.nType == BIT_DIGITAL) {
+            [inputs addObject:[[FBInputInfo alloc] initWithCode:[NSString stringWithCString:bii.szInfo
+                                                                                   encoding:NSASCIIStringEncoding]
+                                                          title:[NSString stringWithCString:bii.szName
+                                                                                   encoding:NSASCIIStringEncoding]]];
+        }
+    }
+
+    return inputs;
+}
+
+- (FBInputMap *) loadMapForDeviceId:(NSString *) deviceId
+                            setName:(NSString *) setName
+{
+    NSString *path = [AppDelegate.sharedInstance.inputMapPath stringByAppendingPathComponent:
+                      [[NSString stringWithFormat:@"%@-%@.inp", setName, deviceId] sanitizeForFilename]];
+
+    FBInputMap *map = [NSKeyedUnarchiver unarchiveObjectWithFile:path];
+    if (!map) {
+        map = [FBInputMap new];
+    }
+
+    return map;
+}
+
+- (BOOL) saveMap:(FBInputMap *) map
+     forDeviceId:(NSString *) deviceId
+         setName:(NSString *) setName
+{
+    NSString *path = [AppDelegate.sharedInstance.inputMapPath stringByAppendingPathComponent:
+                      [[NSString stringWithFormat:@"%@-%@.inp", setName, deviceId] sanitizeForFilename]];
+    if ([NSKeyedArchiver archiveRootObject:map
+                                    toFile:path]) {
+        map.isDirty = NO;
+        return YES;
+    }
     return NO;
 }
 
@@ -246,6 +445,7 @@ int MacOSinpInit()
 {
     memset(keyState, 0, sizeof(keyState));
     memset(simKeyState, 0, sizeof(simKeyState));
+    memset(joyState, 0, sizeof(joyState));
     return 0;
 }
 
@@ -287,13 +487,8 @@ int MacOSinpState(int nCode)
         return 0;
 
     if (nCode < 0x8000) {
-        // FIXME!!
-//        // Codes 4000-8000 = Joysticks
-//        int nJoyNumber = (nCode - 0x4000) >> 8;
-//
-//        // Find the joystick state in our array
-//        return JoystickState(nJoyNumber, nCode & 0xFF);
-        return 0;
+        int joyIndex = (nCode - 0x4000) >> 8;
+        return joyState[joyIndex][nCode & 0xff];
     }
 
     if (nCode < 0xC000) {

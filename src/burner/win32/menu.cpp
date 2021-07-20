@@ -949,18 +949,12 @@ void MenuUpdate()
 		case 0: {
 			var = MENU_DSOUND_NOSOUND;
 			if (nAudSampleRate[0] > 0) {
-				if (nAudSampleRate[0] <= 11025) {
-					var = MENU_DSOUND_11025;
+				if (nAudSampleRate[0] <= 44100) {
+					var = MENU_DSOUND_44100;
+					nAudSampleRate[0] = 44100; // sanity
 				} else {
-					if (nAudSampleRate[0] <= 22050) {
-						var = MENU_DSOUND_22050;
-					} else {
-						if (nAudSampleRate[0] <= 44100) {
-							var = MENU_DSOUND_44100;
-						} else {
-							var = MENU_DSOUND_48000;
-						}
-					}
+					var = MENU_DSOUND_48000;
+					nAudSampleRate[0] = 48000;
 				}
 			}
 			CheckMenuRadioItem(hMenu, MENU_DSOUND_NOSOUND, MENU_DSOUND_48000, var, MF_BYCOMMAND);
@@ -971,18 +965,12 @@ void MenuUpdate()
 		case 1: {
 			var = MENU_XAUDIO_NOSOUND;
 			if (nAudSampleRate[1] > 0) {
-				if (nAudSampleRate[1] <= 11025) {
-					var = MENU_XAUDIO_11025;
+				if (nAudSampleRate[1] <= 44100) {
+					var = MENU_XAUDIO_44100;
+					nAudSampleRate[1] = 44100; // sanity
 				} else {
-					if (nAudSampleRate[1] <= 22050) {
-						var = MENU_XAUDIO_22050;
-					} else {
-						if (nAudSampleRate[1] <= 44100) {
-							var = MENU_XAUDIO_44100;
-						} else {
-							var = MENU_XAUDIO_48000;
-						}
-					}
+					var = MENU_XAUDIO_48000;
+					nAudSampleRate[1] = 48000;
 				}
 			}
 			CheckMenuRadioItem(hMenu, MENU_XAUDIO_NOSOUND, MENU_XAUDIO_48000, var, MF_BYCOMMAND);
@@ -1067,11 +1055,12 @@ void MenuUpdate()
 	CheckMenuItem(hMenu, MENU_SAVEGAMEINPUT, bSaveInputs ? MF_CHECKED : MF_UNCHECKED);
 
 	// Auto-Fire
-	if (nAutoFireRate == 4)  var = MENU_INPUT_AUTOFIRE_RATE_4;
+	if (nAutoFireRate == 4)  var = MENU_INPUT_AUTOFIRE_RATE_5;
+	if (nAutoFireRate == 6)  var = MENU_INPUT_AUTOFIRE_RATE_4;
 	if (nAutoFireRate == 8)  var = MENU_INPUT_AUTOFIRE_RATE_3;
 	if (nAutoFireRate == 12) var = MENU_INPUT_AUTOFIRE_RATE_2;
 	if (nAutoFireRate == 22) var = MENU_INPUT_AUTOFIRE_RATE_1;
-	CheckMenuRadioItem(hMenu, MENU_INPUT_AUTOFIRE_RATE_1, MENU_INPUT_AUTOFIRE_RATE_4, var, MF_BYCOMMAND);
+	CheckMenuRadioItem(hMenu, MENU_INPUT_AUTOFIRE_RATE_1, MENU_INPUT_AUTOFIRE_RATE_5, var, MF_BYCOMMAND);
 
 #ifdef BUILD_A68K
 	CheckMenuItem(hMenu, MENU_ASSEMBLYCORE, bBurnUseASMCPUEmulation ? MF_CHECKED : MF_UNCHECKED);
@@ -1286,13 +1275,9 @@ void MenuEnableItems()
 		EnableMenuItem(hMenu, MENU_INPUT,				MF_ENABLED | MF_BYCOMMAND);
 		EnableMenuItem(hMenu, MENU_FORCE60HZ,				MF_GRAYED  | MF_BYCOMMAND);
 		EnableMenuItem(hMenu, MENU_DSOUND_NOSOUND,				MF_GRAYED  | MF_BYCOMMAND);
-		EnableMenuItem(hMenu, MENU_DSOUND_11025,				MF_GRAYED  | MF_BYCOMMAND);
-		EnableMenuItem(hMenu, MENU_DSOUND_22050,				MF_GRAYED  | MF_BYCOMMAND);
 		EnableMenuItem(hMenu, MENU_DSOUND_44100,				MF_GRAYED  | MF_BYCOMMAND);
 		EnableMenuItem(hMenu, MENU_DSOUND_48000,				MF_GRAYED  | MF_BYCOMMAND);
 		EnableMenuItem(hMenu, MENU_XAUDIO_NOSOUND,				MF_GRAYED  | MF_BYCOMMAND);
-		EnableMenuItem(hMenu, MENU_XAUDIO_11025,				MF_GRAYED  | MF_BYCOMMAND);
-		EnableMenuItem(hMenu, MENU_XAUDIO_22050,				MF_GRAYED  | MF_BYCOMMAND);
 		EnableMenuItem(hMenu, MENU_XAUDIO_44100,				MF_GRAYED  | MF_BYCOMMAND);
 		EnableMenuItem(hMenu, MENU_XAUDIO_48000,				MF_GRAYED  | MF_BYCOMMAND);
 		EnableMenuItem(hMenu, MENU_INTERPOLATE_FM_0,	MF_GRAYED  | MF_BYCOMMAND);
@@ -1464,13 +1449,9 @@ void MenuEnableItems()
 		EnableMenuItem(hMenu, MENU_STATE_SAVE_DIALOG,	MF_GRAYED  | MF_BYCOMMAND);
 		EnableMenuItem(hMenu, MENU_FRAMES,				MF_ENABLED | MF_BYCOMMAND);
 		EnableMenuItem(hMenu, MENU_DSOUND_NOSOUND,				MF_ENABLED | MF_BYCOMMAND);
-		EnableMenuItem(hMenu, MENU_DSOUND_11025,				MF_ENABLED | MF_BYCOMMAND);
-		EnableMenuItem(hMenu, MENU_DSOUND_22050,				MF_ENABLED | MF_BYCOMMAND);
 		EnableMenuItem(hMenu, MENU_DSOUND_44100,				MF_ENABLED | MF_BYCOMMAND);
 		EnableMenuItem(hMenu, MENU_DSOUND_48000,				MF_ENABLED | MF_BYCOMMAND);
 		EnableMenuItem(hMenu, MENU_XAUDIO_NOSOUND,				MF_ENABLED | MF_BYCOMMAND);
-		EnableMenuItem(hMenu, MENU_XAUDIO_11025,				MF_ENABLED | MF_BYCOMMAND);
-		EnableMenuItem(hMenu, MENU_XAUDIO_22050,				MF_ENABLED | MF_BYCOMMAND);
 		EnableMenuItem(hMenu, MENU_XAUDIO_44100,				MF_ENABLED | MF_BYCOMMAND);
 		EnableMenuItem(hMenu, MENU_XAUDIO_48000,				MF_ENABLED | MF_BYCOMMAND);
 //		EnableMenuItem(hMenu, MENU_INTERPOLATE_1,		MF_ENABLED | MF_BYCOMMAND);

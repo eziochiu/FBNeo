@@ -28,7 +28,7 @@ static TCHAR* szClass = _T("FinalBurn Neo");					// Window class name
 HWND hScrnWnd = NULL;									// Handle to the screen window
 HWND hRebar = NULL;										// Handle to the Rebar control containing the menu
 
-static bool bMaximised;
+static bool bMaximized;
 static int nPrevWidth, nPrevHeight;
 
 static int bBackFromHibernation = 0;
@@ -1907,18 +1907,6 @@ static void OnCommand(HWND /*hDlg*/, int id, HWND /*hwndCtl*/, UINT codeNotify)
 				POST_INITIALISE_MESSAGE;
 			}
 			break;
-		case MENU_DSOUND_11025:
-			if (!bDrvOkay) {
-				nAudSampleRate[0] = 11025;
-				POST_INITIALISE_MESSAGE;
-			}
-			break;
-		case MENU_DSOUND_22050:
-			if (!bDrvOkay) {
-				nAudSampleRate[0] = 22050;
-				POST_INITIALISE_MESSAGE;
-			}
-			break;
 		case MENU_DSOUND_44100:
 			if (!bDrvOkay) {
 				nAudSampleRate[0] = 44100;
@@ -1935,18 +1923,6 @@ static void OnCommand(HWND /*hDlg*/, int id, HWND /*hwndCtl*/, UINT codeNotify)
 		case MENU_XAUDIO_NOSOUND:
 			if (!bDrvOkay) {
 				nAudSampleRate[1] = 0;
-				POST_INITIALISE_MESSAGE;
-			}
-			break;
-		case MENU_XAUDIO_11025:
-			if (!bDrvOkay) {
-				nAudSampleRate[1] = 11025;
-				POST_INITIALISE_MESSAGE;
-			}
-			break;
-		case MENU_XAUDIO_22050:
-			if (!bDrvOkay) {
-				nAudSampleRate[1] = 22050;
 				POST_INITIALISE_MESSAGE;
 			}
 			break;
@@ -2230,7 +2206,8 @@ static void OnCommand(HWND /*hDlg*/, int id, HWND /*hwndCtl*/, UINT codeNotify)
 		case MENU_INPUT_AUTOFIRE_RATE_1: nAutoFireRate = 22; break;
 		case MENU_INPUT_AUTOFIRE_RATE_2: nAutoFireRate = 12; break;
 		case MENU_INPUT_AUTOFIRE_RATE_3: nAutoFireRate =  8; break;
-		case MENU_INPUT_AUTOFIRE_RATE_4: nAutoFireRate =  4; break;
+		case MENU_INPUT_AUTOFIRE_RATE_4: nAutoFireRate =  6; break;
+		case MENU_INPUT_AUTOFIRE_RATE_5: nAutoFireRate =  4; break;
 
 		case MENU_PRIORITY_REALTIME: // bad idea, this will freeze the entire system.
 			break;
@@ -3146,7 +3123,7 @@ static int OnSysCommand(HWND, UINT sysCommand, int, int)
 static void OnSize(HWND, UINT state, int cx, int cy)
 {
 	if (state == SIZE_MINIMIZED) {
-		bMaximised = false;
+		bMaximized = false;
 	} else {
 		bool bSizeChanged = false;
 
@@ -3157,16 +3134,16 @@ static void OnSize(HWND, UINT state, int cx, int cy)
 		}
 
 		if (state == SIZE_MAXIMIZED) {
-			if (!bMaximised) {
+			if (!bMaximized) {
 				bSizeChanged = true;
 			}
-			bMaximised = true;
+			bMaximized = true;
 		}
 		if (state == SIZE_RESTORED) {
-			if (bMaximised) {
+			if (bMaximized) {
 				bSizeChanged = true;
 			}
-			bMaximised = false;
+			bMaximized = false;
 		}
 
 		if (bSizeChanged) {
@@ -3440,7 +3417,13 @@ int ScrnSize()
 
 	MenuUpdate();
 
-	bMaximised = false;
+	if (bMaximized) {
+		// At this point: game window is maximized
+		// different game is selected
+		// usually the game window would be re-created using the "Window Size" selection
+		// -but- since the game window was maximized, it should stay that way.
+		PostMessage(hScrnWnd, WM_SYSCOMMAND, SC_MAXIMIZE, 0);
+	}
 
 	MoveWindow(hScrnWnd, x, y, w, h, true);
 

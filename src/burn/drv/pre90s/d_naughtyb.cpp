@@ -539,6 +539,7 @@ static INT32 DrvFrame()
 
 	if (pBurnSoundOut) {
 		pleiads_sound_update(pBurnSoundOut, nBurnSoundLen);
+		BurnSoundDCFilter();
 	}
 
 	if (pBurnDraw) {
@@ -565,6 +566,8 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin)
 		BurnAcb(&ba);
 
 		ZetScan(nAction);
+
+		pleiads_sound_scan(nAction, pnMin);
 
 		SCAN_VAR(cocktail);
 		SCAN_VAR(palettereg);
