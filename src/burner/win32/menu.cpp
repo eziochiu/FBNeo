@@ -36,7 +36,6 @@ static HHOOK hMenuHook;
 
 static LRESULT CALLBACK MenuHook(int nCode, WPARAM wParam, LPARAM lParam)
 {
-
 	switch (((MSG*)lParam)->message) {
 
 		case WM_MOUSEMOVE: {				// Translate coordinates to menubar client coordinates
@@ -50,12 +49,25 @@ static LRESULT CALLBACK MenuHook(int nCode, WPARAM wParam, LPARAM lParam)
 				SendMessage(hMenubar, TB_GETITEMRECT, nLastMenu, (LPARAM)&buttonrect);
 
 				if (!(point.x >= rect.left + buttonrect.left && point.y >= rect.top + buttonrect.top && point.x < rect.left + buttonrect.right && point.y < rect.top + buttonrect.bottom)) {
-					SendNotifyMessage(hMenubar, WM_MOUSEMOVE, wParam, MAKELONG(point.x - rect.left, point.y - rect.top));
+					HMENU hPopupMenu = GetSubMenu(hMenu, nLastMenu);					// The last menu captured in the hook must be the menu you just clicked.
+					INT32 nMenuCount = GetMenuItemCount(hPopupMenu);					// Gets the number of submenus.
+					RECT itemRect = { 0,0,0,0 }, popmenuRect = { 0,0,0,0 };
+					GetMenuItemRect(NULL, hPopupMenu, 0, &itemRect);					// To get the left and top of the rect when the menu is expanded.
+					popmenuRect.left = itemRect.left;
+					popmenuRect.top = itemRect.top;
+					GetMenuItemRect(NULL, hPopupMenu, nMenuCount - 1, &itemRect);		// To get the right and bottom of the rect when the menu is expanded.
+					popmenuRect.right = itemRect.right;
+					popmenuRect.bottom = itemRect.bottom;
+					if (!PtInRect(&popmenuRect, point)) {								// Executed when the mouse is not in the rect range.
+						SendNotifyMessage(hMenubar, WM_MOUSEMOVE, wParam, MAKELONG(point.x - rect.left, point.y - rect.top));
+					}
 				}
 			}
 			break;
 		}
 
+#if 0
+		// This is a troublemaker, no need.
 		case WM_LBUTTONDOWN: {
 			RECT rect;
 			RECT buttonrect;
@@ -71,9 +83,9 @@ static LRESULT CALLBACK MenuHook(int nCode, WPARAM wParam, LPARAM lParam)
 			}
 			break;
 		}
+#endif
 
 	}
-
 	MenuHandleKeyboard((MSG*)lParam);
 
 	return CallNextHookEx(hMenuHook, nCode, wParam, lParam);
@@ -98,11 +110,11 @@ void DisplayPopupMenu(int nMenu)
 		GetWindowRect(hMenubar, &clientRect);
 		SendMessage(hMenubar, TB_GETITEMRECT, nMenu, (LPARAM)&buttonRect);
 
-	 	if (!bModelessMenu) {
+		if (!bModelessMenu) {
 			hMenuHook = SetWindowsHookEx(WH_MSGFILTER, MenuHook, NULL, GetCurrentThreadId());
 		}
-  		TrackPopupMenuEx(hPopupMenu, TPM_LEFTALIGN | TPM_TOPALIGN, clientRect.left + buttonRect.left, clientRect.top + buttonRect.bottom, hScrnWnd, NULL);
-	 	if (!bModelessMenu) {
+		TrackPopupMenuEx(hPopupMenu, TPM_LEFTALIGN | TPM_TOPALIGN, clientRect.left + buttonRect.left, clientRect.top + buttonRect.bottom, hScrnWnd, NULL);
+		if (!bModelessMenu) {
 			UnhookWindowsHookEx(hMenuHook);
 		}
 	}
@@ -168,7 +180,7 @@ int OnUnInitMenuPopup(HWND, HMENU, UINT, BOOL)
 {
 	if (nRecursions <= 1) {
 		bMenuDisplayed = false;
-  		SendMessage(hMenubar, TB_PRESSBUTTON, nLastMenu + MENU_MENU_0, MAKELONG(0, 0));
+		SendMessage(hMenubar, TB_PRESSBUTTON, nLastMenu + MENU_MENU_0, MAKELONG(0, 0));
 		if(!bAltPause) {
 			if (bRunPause) {
 				bRunPause = 0;
@@ -443,8 +455,8 @@ void MenuDestroy()
 		MENUITEMINFO myMenuItemInfo;
 		myMenuItemInfo.cbSize = sizeof(MENUITEMINFO);
 		myMenuItemInfo.fMask = MIIM_SUBMENU | MIIM_STATE;
-        myMenuItemInfo.fState = MFS_GRAYED;
-        myMenuItemInfo.hSubMenu = NULL;
+		myMenuItemInfo.fState = MFS_GRAYED;
+		myMenuItemInfo.hSubMenu = NULL;
 		if (hMenu) {
 			SetMenuItemInfo(GetSubMenu(hMenu, 1), 1, TRUE, &myMenuItemInfo);
 		}
@@ -665,6 +677,9 @@ void MenuUpdate()
 	CheckMenuItem(hMenu, MENU_SETCPUCLOCK, nBurnCPUSpeedAdjust != 0x0100 ? MF_CHECKED : MF_UNCHECKED);
 	CreateCPUSpeedItem(nBurnCPUSpeedAdjust != 0x0100);
 
+	if (bVidIntegerScale) {
+		var = MENU_INTSCALE;
+	} else
 	if (bVidFullStretch) {
 		var = MENU_STRETCH;
 	} else {
@@ -674,8 +689,7 @@ void MenuUpdate()
 			var = MENU_NOSTRETCH;
 		}
 	}
-	CheckMenuRadioItem(hMenu, MENU_NOSTRETCH, MENU_ASPECT, var, MF_BYCOMMAND);
-	CheckMenuItem(hMenu, MENU_STRETCH, bVidFullStretch ? MF_CHECKED : MF_UNCHECKED);
+	CheckMenuRadioItem(hMenu, MENU_NOSTRETCH, MENU_INTSCALE, var, MF_BYCOMMAND);
 
 	CheckMenuItem(hMenu, MENU_TRIPLE, bVidTripleBuffer ? MF_CHECKED : MF_UNCHECKED);
 
@@ -1122,6 +1136,9 @@ void MenuUpdate()
 	CheckMenuItem(hMenu, MENU_ENABLEICONS, bEnableIcons ? MF_CHECKED : MF_UNCHECKED);
 	CheckMenuItem(hMenu, MENU_ICONS_PARENTSONLY, bIconsOnlyParents ? MF_CHECKED : MF_UNCHECKED);
 
+	var = (bIconsByHardwares) ? MENU_ICONS_BY_HARDWARE : MENU_ICONS_BY_GAME;
+	CheckMenuRadioItem(hMenu, MENU_ICONS_BY_GAME, MENU_ICONS_BY_HARDWARE, var, MF_BYCOMMAND);
+
 	// Previous games list
 	for (int i = 0; i < SHOW_PREV_GAMES; i++) {
 		MENUITEMINFO menuItemInfo;
@@ -1239,15 +1256,15 @@ void MenuEnableItems()
 		MENUITEMINFO myMenuItemInfo;
 		myMenuItemInfo.cbSize = sizeof(MENUITEMINFO);
 		myMenuItemInfo.fMask = MIIM_SUBMENU | MIIM_STATE;
-        	myMenuItemInfo.fState = MFS_ENABLED;
-        	myMenuItemInfo.hSubMenu = GetSubMenu(hBlitterMenu[nVidSelect], 0);
+		myMenuItemInfo.fState = MFS_ENABLED;
+		myMenuItemInfo.hSubMenu = GetSubMenu(hBlitterMenu[nVidSelect], 0);
 		SetMenuItemInfo(GetSubMenu(hMenu, 1), 1, TRUE, &myMenuItemInfo);
 	} else {
 		MENUITEMINFO myMenuItemInfo;
 		myMenuItemInfo.cbSize = sizeof(MENUITEMINFO);
 		myMenuItemInfo.fMask = MIIM_SUBMENU | MIIM_STATE;
-        	myMenuItemInfo.fState = MFS_GRAYED;
-        	myMenuItemInfo.hSubMenu = NULL;
+		myMenuItemInfo.fState = MFS_GRAYED;
+		myMenuItemInfo.hSubMenu = NULL;
 		SetMenuItemInfo(GetSubMenu(hMenu, 1), 1, TRUE, &myMenuItemInfo);
 	}
 
@@ -1255,15 +1272,15 @@ void MenuEnableItems()
 		MENUITEMINFO myMenuItemInfo;
 		myMenuItemInfo.cbSize = sizeof(MENUITEMINFO);
 		myMenuItemInfo.fMask = MIIM_SUBMENU | MIIM_STATE;
-        	myMenuItemInfo.fState = MFS_ENABLED;
-        	myMenuItemInfo.hSubMenu = GetSubMenu(hAudioPluginMenu[nAudSelect], 0);
+		myMenuItemInfo.fState = MFS_ENABLED;
+		myMenuItemInfo.hSubMenu = GetSubMenu(hAudioPluginMenu[nAudSelect], 0);
 		SetMenuItemInfo(GetSubMenu(hMenu, 2), 1, TRUE, &myMenuItemInfo);
 	} else {
 		MENUITEMINFO myMenuItemInfo;
 		myMenuItemInfo.cbSize = sizeof(MENUITEMINFO);
 		myMenuItemInfo.fMask = MIIM_SUBMENU | MIIM_STATE;
-        	myMenuItemInfo.fState = MFS_GRAYED;
-        	myMenuItemInfo.hSubMenu = NULL;
+		myMenuItemInfo.fState = MFS_GRAYED;
+		myMenuItemInfo.hSubMenu = NULL;
 		SetMenuItemInfo(GetSubMenu(hMenu, 2), 1, TRUE, &myMenuItemInfo);
 	}
 
@@ -1331,6 +1348,7 @@ void MenuEnableItems()
 			EnableMenuItem(hMenu, MENU_START_NEOGEO_CD,		MF_GRAYED  | MF_BYCOMMAND);
 		}
 		EnableMenuItem(hMenu, MENU_LOAD_ROMDATA,		MF_GRAYED  | MF_BYCOMMAND);
+		EnableMenuItem(hMenu, MENU_ROMDATA_MANAGER,		MF_GRAYED  | MF_BYCOMMAND);
 		EnableMenuItem(hMenu, MENU_QUIT,				MF_ENABLED | MF_BYCOMMAND);
 		EnableMenuItem(hMenu, MENU_INPUT,				MF_ENABLED | MF_BYCOMMAND);
 		EnableMenuItem(hMenu, MENU_FORCE60HZ,			MF_GRAYED  | MF_BYCOMMAND);
@@ -1492,6 +1510,7 @@ void MenuEnableItems()
 
 		EnableMenuItem(hMenu, MENU_LOAD,				MF_ENABLED | MF_BYCOMMAND);
 		EnableMenuItem(hMenu, MENU_LOAD_ROMDATA,		MF_ENABLED | MF_BYCOMMAND);
+		EnableMenuItem(hMenu, MENU_ROMDATA_MANAGER,		MF_ENABLED | MF_BYCOMMAND);
 		EnableMenuItem(hMenu, ID_SLOMO_0,				MF_GRAYED  | MF_BYCOMMAND);
 		EnableMenuItem(hMenu, ID_SLOMO_1,				MF_GRAYED  | MF_BYCOMMAND);
 		EnableMenuItem(hMenu, ID_SLOMO_2,				MF_GRAYED  | MF_BYCOMMAND);

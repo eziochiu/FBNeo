@@ -338,8 +338,6 @@ extern int nDialogSelect;
 extern int nOldDlgSelected;
 void CreateToolTipForRect(HWND hwndParent, PTSTR pszText);
 int SelMVSDialog();
-void LoadDrvIcons();
-void UnloadDrvIcons();
 #define		ICON_16x16			0
 #define		ICON_24x24			1
 #define		ICON_32x32			2
@@ -348,6 +346,15 @@ extern bool bIconsLoaded;
 extern bool bIconsOnlyParents;
 extern int nIconsSize, nIconsSizeXY, nIconsYDiff;
 extern bool bGameInfoOpen;
+extern bool bIconsByHardwares;
+
+extern HICON* pIconsCache;
+
+void CreateDrvIconsCache();
+void DestroyDrvIconsCache();
+
+void LoadDrvIcons();
+void UnloadDrvIcons();
 
 // neocdsel.cpp
 extern int NeoCDList_Init();
@@ -361,14 +368,18 @@ HBITMAP PNGLoadBitmap(HWND hWnd, FILE* fp, int nWidth, int nHeight, int nPreset)
 HBITMAP LoadBitmap(HWND hWnd, FILE* fp, int nWidth, int nHeight, int nPreset);
 int NeoCDList_CheckISO(TCHAR* pszFile, void (*pfEntryCallBack)(INT32, TCHAR*));
 
+// romdata.cpp
+extern bool bRDListScanSub;
+INT32 RomDataManagerInit();
+
 // cona.cpp
-typedef struct {
+struct SubDirInfo {
 	TCHAR   BaseDir[MAX_PATH];
 	TCHAR** SubDirs;
 	UINT32  nCount;
-} ThreadParams;
+};
 
-extern ThreadParams _ThreadParams[DIRS_MAX];
+extern SubDirInfo _SubDirInfo[DIRS_MAX];
 
 extern int nIniVersion;
 
@@ -379,7 +390,8 @@ struct VidPresetDataVer { int nWidth; int nHeight; };
 extern struct VidPresetDataVer VidPresetVer[4];
 
 INT32 LookupSubDirThreads();
-void FreeSubDirsInfo();
+void SubDirThreadExit();
+void DestroySubDir();
 int ConfigAppLoad();
 int ConfigAppSave();
 

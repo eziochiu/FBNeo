@@ -8,8 +8,8 @@
 
 #define IS_STRING_EMPTY(s) (NULL == (s) || (s)[0] == _T('\0'))
 
-HANDLE hMutex;
-ThreadParams _ThreadParams[DIRS_MAX];
+static HANDLE hLSDThreads[DIRS_MAX] = { 0 };
+SubDirInfo _SubDirInfo[DIRS_MAX];
 
 int nIniVersion = 0;
 
@@ -67,10 +67,9 @@ static void TraverseDirectory(const TCHAR* dirPath, TCHAR*** pszArray, UINT32* p
 			if (0 == _tcscmp(findFileData.cFileName, _T(".")) || 0 == _tcscmp(findFileData.cFileName, _T("..")))
 				continue;
 
-			if ((_tcslen(dirPath) + _tcslen(findFileData.cFileName)) > (MAX_PATH - 2))
+			// like: c:\1st_dir + '\' + 2nd_dir + '\' + "1.zip" + '\0' = 8 chars
+			if ((_tcslen(dirPath) + _tcslen(findFileData.cFileName)) > (MAX_PATH - 8))
 				continue;
-
-			WaitForSingleObject(hMutex, INFINITE);
 
 			TCHAR subDirPath[MAX_PATH] = { 0 };
 			_stprintf(subDirPath, szFormatB, dirPath, findFileData.cFileName);
@@ -80,8 +79,6 @@ static void TraverseDirectory(const TCHAR* dirPath, TCHAR*** pszArray, UINT32* p
 			(*pszArray)[*pnCount] = (TCHAR*)malloc(MAX_PATH * sizeof(TCHAR));
 			_stprintf((*pszArray)[(*pnCount)++], _T("%s\\"), subDirPath);
 
-			ReleaseMutex(hMutex);
-
 			TraverseDirectory(subDirPath, pszArray, pnCount);
 		}
 	} while (FindNextFile(hFind, &findFileData));
@@ -89,54 +86,86 @@ static void TraverseDirectory(const TCHAR* dirPath, TCHAR*** pszArray, UINT32* p
 	FindClose(hFind);
 }
 
+#undef IS_STRING_EMPTY
+
 static UINT32 __stdcall TraverseDirsProc(void* lpParam)
 {
-	ThreadParams* pThreadParams = (ThreadParams*)lpParam;
-	TraverseDirectory(pThreadParams->BaseDir, &(pThreadParams->SubDirs), &(pThreadParams->nCount));
+	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
+
+	SubDirInfo* pSubDirInfo = (SubDirInfo*)lpParam;
+	TraverseDirectory(pSubDirInfo->BaseDir, &(pSubDirInfo->SubDirs), &(pSubDirInfo->nCount));
 
 	return 0;
+}
+
+void SubDirThreadExit()
+{
+	INT32 nFinished = 0, i = 0;;
+
+	// Threads are not started
+	for (i = 0; i < DIRS_MAX; i++) {
+		if (NULL == hLSDThreads[i]) nFinished++;
+		if (DIRS_MAX == nFinished)  return;
+	}
+
+	// Threads have been started
+	nFinished = 0;
+
+	while (nFinished < DIRS_MAX) {
+		for (i = 0; i < DIRS_MAX; i++) {
+			if (NULL == hLSDThreads[i]) continue;
+
+			DWORD dwExitCode = 0;
+			GetExitCodeThread(hLSDThreads[i], &dwExitCode);
+
+			if (STILL_ACTIVE != dwExitCode) {
+				CloseHandle(hLSDThreads[i]); hLSDThreads[i] = NULL;
+				nFinished++;
+			} else {
+				WaitForSingleObject(hLSDThreads[i], 100);
+			}
+		}
+	}
+}
+
+static void FreeSubDirsInfo()
+{
+	for (INT32 i = 0; i < DIRS_MAX; i++) {
+		if (NULL != _SubDirInfo[i].SubDirs) {
+			for (UINT32 j = 0; j < _SubDirInfo[i].nCount; j++) {
+				if (NULL != _SubDirInfo[i].SubDirs[j]) {
+					free(_SubDirInfo[i].SubDirs[j]);
+					_SubDirInfo[i].SubDirs[j] = NULL;
+				}
+			}
+			free(_SubDirInfo[i].SubDirs);
+			_SubDirInfo[i].SubDirs = NULL;
+			_SubDirInfo[i].nCount = 0;
+		}
+	}
+}
+
+void DestroySubDir()
+{
+	SubDirThreadExit();
+	FreeSubDirsInfo();
 }
 
 INT32 LookupSubDirThreads()
 {
-	FreeSubDirsInfo();
+	DestroySubDir();
 
-	HANDLE hThreads[DIRS_MAX];
-
-	if (NULL == (hMutex = CreateMutex(NULL, FALSE, NULL))) return 1;
+	if (!(nLoadMenuShowY & (1 << 26)))	// SEARCHSUBDIRS
+		return 1;
 
 	for (INT32 i = 0; i < DIRS_MAX; i++) {
-		_tcscpy(_ThreadParams[i].BaseDir, szAppRomPaths[i]);
-
-		hThreads[i] = (HANDLE)_beginthreadex(
-			NULL, NULL, TraverseDirsProc, &_ThreadParams[i], 0, NULL
-		);
-		if (0 == hThreads[i]) return 1;
+		memset(&(_SubDirInfo[i]), 0, sizeof(SubDirInfo));
+		_tcscpy(_SubDirInfo[i].BaseDir, szAppRomPaths[i]);
+		hLSDThreads[i] = (HANDLE)_beginthreadex(NULL, 0, TraverseDirsProc, &_SubDirInfo[i], 0, NULL);
 	}
 
-	WaitForMultipleObjects(DIRS_MAX, hThreads, TRUE, INFINITE);
-
-	CloseHandle(hMutex);
-	for (INT32 i = 0; i < DIRS_MAX; i++) CloseHandle(hThreads[i]);
 
 	return 0;
-}
-
-void FreeSubDirsInfo()
-{
-	for (INT32 i = 0; i < DIRS_MAX; i++) {
-		if (NULL != _ThreadParams[i].SubDirs) {
-			for (UINT32 j = 0; j < _ThreadParams[i].nCount; j++) {
-				if (NULL != _ThreadParams[i].SubDirs[j]) {
-					free(_ThreadParams[i].SubDirs[j]);
-					_ThreadParams[i].SubDirs[j] = NULL;
-				}
-			}
-			free(_ThreadParams[i].SubDirs);
-			_ThreadParams[i].SubDirs = NULL;
-			_ThreadParams[i].nCount = 0;
-		}
-	}
 }
 
 static void CreateConfigName(TCHAR* szConfig)
@@ -225,6 +254,7 @@ int ConfigAppLoad()
 		VAR(nScreenSizeVer);
 
 		VAR(nWindowSize);
+		VAR(bVidIntegerScale);
 		VAR(nWindowPosX); VAR(nWindowPosY);
 		VAR(bDoGamma);
 		VAR(bVidUseHardwareGamma);
@@ -376,6 +406,7 @@ int ConfigAppLoad()
 		STR(szAppSamplesPath);
 		STR(szAppHDDPath);
 		STR(szAppIpsPath);
+		STR(szAppRomdataPath);
 		STR(szAppIconsPath);
 		STR(szNeoCDCoverDir);
 		STR(szAppBlendPath);
@@ -420,6 +451,7 @@ int ConfigAppLoad()
 		VAR(bEnableIcons);
 		VAR(bIconsOnlyParents);
 		VAR(nIconsSize);
+		VAR(bIconsByHardwares);
 
 		STR(szPrevGames[0]);
 		STR(szPrevGames[1]);
@@ -442,6 +474,8 @@ int ConfigAppLoad()
 
 		VAR(bNeoCDListScanSub);
 		VAR(bNeoCDListScanOnlyISO);
+		
+		VAR(bRDListScanSub);
 
 		// Default Controls
 		VAR(nPlayerDefaultControls[0]);
@@ -463,7 +497,6 @@ int ConfigAppLoad()
 	}
 
 	fclose(h);
-
 	LookupSubDirThreads();
 
 	return 0;
@@ -558,6 +591,8 @@ int ConfigAppSave()
 	VAR(nVidRotationAdjust);
 	_ftprintf(h, _T("\n// Initial window size (0 = autosize)\n"));
 	VAR(nWindowSize);
+	_ftprintf(h, _T("\n// Use integer scaling? (1 on, 0 off)\n"));
+	VAR(bVidIntegerScale);
 	_ftprintf(h, _T("\n// Window position\n"));
 	VAR(nWindowPosX); VAR(nWindowPosY);
 	_ftprintf(h, _T("\n// If non-zero, perform gamma correction\n"));
@@ -800,6 +835,7 @@ int ConfigAppSave()
 	STR(szAppSamplesPath);
 	STR(szAppHDDPath);
 	STR(szAppIpsPath);
+	STR(szAppRomdataPath);
 	STR(szAppIconsPath);
 	STR(szNeoCDCoverDir);
 	STR(szAppBlendPath);
@@ -827,6 +863,9 @@ int ConfigAppSave()
 	_ftprintf(h, _T("\n// Neo Geo CD Load Game Dialog options\n"));
 	VAR(bNeoCDListScanSub);
 	VAR(bNeoCDListScanOnlyISO);
+
+	_ftprintf(h, _T("\n// RomData Load Game Dialog options\n"));
+	VAR(bRDListScanSub);
 
 	_ftprintf(h, _T("\n\n\n"));
 	_ftprintf(h, _T("// --- miscellaneous ---------------------------------------------------------\n"));
@@ -889,6 +928,9 @@ int ConfigAppSave()
 
 	_ftprintf(h, _T("\n// Specify icons display size, 0 = 16x16 , 1 = 24x24, 2 = 32x32.\n"));
 	VAR(nIconsSize);
+
+	_ftprintf(h, _T("\n// If non-zero, display icons by hardwares.\n"));
+	VAR(bIconsByHardwares);
 
 	_ftprintf(h, _T("\n// Previous games list.\n"));
 	STR(szPrevGames[0]);
